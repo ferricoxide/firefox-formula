@@ -77,26 +77,25 @@ This state will install the firefox package only.
 This state will configure the firefox service and has a dependency on ``firefox.install``
 via include list.
 
+NOTE: This formula currently does nothing when this state is called.
+
 ``firefox.service``
 ^^^^^^^^^^^^^^^^^^^
 
-This state will start the firefox service and has a dependency on ``firefox.config``
-via include list.
+This state *would* start the firefox service &mdash; and has a dependency on ``firefox.config`` via include list &mdash; but the Firefox browser requires no associated services be started. As such, this formula does nothing when this state is called.
+
 
 ``firefox.clean``
 ^^^^^^^^^^^^^^^^^
 
 *Meta-state (This is a state that includes other states)*.
 
-this state will undo everything performed in the ``firefox`` meta-state in reverse order, i.e.
-stops the service,
-removes the configuration file and
-then uninstalls the package.
+This state will undo everything performed in the ``firefox`` meta-state in reverse order. In this case, the meta-state only removes the Firefox package and any packages that were also installed via dependency-tracking mechanisms
 
 ``firefox.service.clean``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This state will stop the firefox service and disable it at boot time.
+This state stops and disables any service the formula was previously used to start/enable
 
 ``firefox.config.clean``
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -107,7 +106,7 @@ dependency on ``firefox.service.clean`` via include list.
 ``firefox.package.clean``
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This state will remove the firefox package and has a depency on
+This state will remove any firefox package(s) and dependencies previously install by this formula. This state has a depency on
 ``firefox.config.clean`` via include list.
 
 ``firefox.subcomponent``
@@ -115,64 +114,16 @@ This state will remove the firefox package and has a depency on
 
 *Meta-state (This is a state that includes other states)*.
 
-This state installs a subcomponent configuration file before
-configuring and starting the firefox service.
+This state *would* install subcomponent configuration files before configuring and starting the Firefox service, however, the Firefox browser does not rely on any system services to function.
 
 ``firefox.subcomponent.config``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This state will configure the firefox subcomponent and has a
-dependency on ``firefox.config`` via include list.
+This state *would* configure Firefox subcomponent(s), however, the Firefox browser does not have any subcomponents dependencies. This state has a dependency on ``firefox.config`` via include list.
 
 ``firefox.subcomponent.config.clean``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This state will remove the configuration of the firefox subcomponent
-and reload the firefox service by a dependency on
-``firefox.service.running`` via include list and ``watch_in``
+This state will remove the configuration of any Firefox subcomponents previously installed via this formula and reload the Firefox service by a dependency on ``firefox.service.running`` via include list and ``watch_in``
 requisite.
 
-Testing
--------
-
-Linux testing is done with ``kitchen-salt``.
-
-Requirements
-^^^^^^^^^^^^
-
-* Ruby
-* Docker
-
-.. code-block:: bash
-
-   $ gem install bundler
-   $ bundle install
-   $ bin/kitchen test [platform]
-
-Where ``[platform]`` is the platform name defined in ``kitchen.yml``,
-e.g. ``debian-9-2019-2-py3``.
-
-``bin/kitchen converge``
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Creates the docker instance and runs the ``firefox`` main state, ready for testing.
-
-``bin/kitchen verify``
-^^^^^^^^^^^^^^^^^^^^^^
-
-Runs the ``inspec`` tests on the actual instance.
-
-``bin/kitchen destroy``
-^^^^^^^^^^^^^^^^^^^^^^^
-
-Removes the docker instance.
-
-``bin/kitchen test``
-^^^^^^^^^^^^^^^^^^^^
-
-Runs all of the stages above in one go: i.e. ``destroy`` + ``converge`` + ``verify`` + ``destroy``.
-
-``bin/kitchen login``
-^^^^^^^^^^^^^^^^^^^^^
-
-Gives you SSH access to the instance for manual testing.
