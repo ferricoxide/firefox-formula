@@ -4,6 +4,11 @@
 {%- set tplroot = tpldir.split('/')[0] %}
 {%- from tplroot ~ "/map.jinja" import mapdata as firefox with context %}
 {%- set ffx_install_dir = 'C:/Program Files/Mozilla Firefox/' %}
+{%- set reg_keys = [
+    'HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla',
+    'HKEY_LOCAL_MACHINE\SOFTWARE\MozillaPlugins'
+  ]
+%}
 
 Uninstall Firefox application:
   cmd.run:
@@ -22,3 +27,9 @@ Nuke the Firefox install-directory contents:
 Nuke the Firefox install-directory:
   file.absent:
     - name: '{{ ffx_install_dir }}'
+
+{%- for reg_key in reg_keys %}
+Delete {{ reg_key }} from registry:
+  reg.absent:
+    - name: {{ reg_key }}
+{%- endfor %}
