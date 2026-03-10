@@ -17,5 +17,5 @@ Install Firefox application:
   cmd.run:
     - name: '{{ stage_loc }} /S /allusers'
     - shell: powershell
-    - onchanges:
+    - require:
       - file: 'Download Firefox installer'
