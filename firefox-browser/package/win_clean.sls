@@ -32,4 +32,6 @@ Nuke the Firefox install-directory:
 Delete {{ reg_key }} from registry:
   reg.absent:
     - name: {{ reg_key }}
+    - onlyif:
+      - cmd: 'Uninstall Firefox application'
 {%- endfor %}
