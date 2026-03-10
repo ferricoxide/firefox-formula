@@ -22,11 +22,13 @@ Nuke the Firefox install-directory contents:
     - name: '{{ ffx_install_dir }}'
     - clean: True
     - onlyif:
-      = cmd: 'Uninstall Firefox application'
+      - cmd: 'Uninstall Firefox application'
 
 Nuke the Firefox install-directory:
   file.absent:
     - name: '{{ ffx_install_dir }}'
+    - onlyif:
+      - file: 'Nuke the Firefox install-directory contents'
 
 {%- for reg_key in reg_keys %}
 Delete {{ reg_key }} from registry:
