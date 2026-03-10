@@ -10,7 +10,7 @@ Download Firefox installer:
   file.managed:
     - name: '{{ stage_loc }}'
     - skip_verify: True
-    - source: '{{ firefox.pkg.name }}'
+    - source: '{{ firefox.pkg.install_uri }}'
     - makedirs: True
 
 Install Firefox application:
