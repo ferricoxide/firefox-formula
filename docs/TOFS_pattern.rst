@@ -4,27 +4,27 @@ TOFS: A pattern for using SaltStack
 ===================================
 
 .. list-table::
-   :name: tofs-authors
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 2,2,3,2
+    :name: tofs-authors
+    :header-rows: 1
+    :stub-columns: 1
+    :widths: 2,2,3,2
 
-   * -
-     - Person
-     - Contact
-     - Date
-   * - Authored by
-     - Roberto Moreda
-     - moreda@allenta.com
-     - 29/12/2014
-   * - Modified by
-     - Daniel Dehennin
-     - daniel.dehennin@baby-gnu.org
-     - 07/02/2019
-   * - Modified by
-     - Imran Iqbal
-     - https://github.com/myii
-     - 23/02/2019
+   *  -
+      - Person
+      - Contact
+      - Date
+   *  - Authored by
+      - Roberto Moreda
+      - moreda@allenta.com
+      - 29/12/2014
+   *  - Modified by
+      - Daniel Dehennin
+      - daniel.dehennin@baby-gnu.org
+      - 07/02/2019
+   *  - Modified by
+      - Imran Iqbal
+      - https://github.com/myii
+      - 23/02/2019
 
 All that follows is a proposal based on my experience with `SaltStack <http://www.saltstack.com/>`_. The good thing of a piece of software like this is that you can "bend it" to suit your needs in many possible ways, and this is one of them. All the recommendations and thoughts are given "as it is" with no warranty of any type.
 
@@ -66,106 +66,106 @@ Let's work with the NTP example. A basic formula that follows the `design guidel
 
 .. code-block:: console
 
-   /srv/saltstack/salt-formulas/ntp-saltstack-formula/
-     ntp/
-       map.jinja
-       init.sls
-       conf.sls
-       files/
-         default/
-           etc/
-             ntp.conf.jinja
+    /srv/saltstack/salt-formulas/ntp-saltstack-formula/
+      ntp/
+        map.jinja
+        init.sls
+        conf.sls
+        files/
+          default/
+            etc/
+              ntp.conf.jinja
 
 In order to use it, let's assume a `masterless configuration <http://docs.saltstack.com/en/latest/topics/tutorials/quickstart.html>`_ and this relevant section of ``/etc/salt/minion``:
 
 .. code-block:: yaml
 
-   pillar_roots:
-     base:
-       - /srv/saltstack/pillar
-   file_client: local
-   file_roots:
-     base:
-       - /srv/saltstack/salt
-       - /srv/saltstack/salt-formulas/ntp-saltstack-formula
+    pillar_roots:
+      base:
+        - /srv/saltstack/pillar
+    file_client: local
+    file_roots:
+      base:
+        - /srv/saltstack/salt
+        - /srv/saltstack/salt-formulas/ntp-saltstack-formula
 
 .. code-block:: jinja
 
-   {#- /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/map.jinja #}
-   {%- set ntp = salt['grains.filter_by']({
-     'default': {
-       'pkg': 'ntp',
-       'service': 'ntp',
-       'config': '/etc/ntp.conf',
-     },
-   }, merge=salt['pillar.get']('ntp:lookup')) %}
+    {#- /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/map.jinja #}
+    {%- set ntp = salt['grains.filter_by']({
+      'default': {
+        'pkg': 'ntp',
+        'service': 'ntp',
+        'config': '/etc/ntp.conf',
+      },
+    }, merge=salt['pillar.get']('ntp:lookup')) %}
 
 In ``init.sls`` we have the minimal states required to have NTP configured. In many cases ``init.sls`` is almost equivalent to an ``apt-get install`` or a ``yum install`` of the package.
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/init.sls
-   {%- from 'ntp/map.jinja' import ntp with context %}
+    ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/init.sls
+    {%- from 'ntp/map.jinja' import ntp with context %}
 
-   Install NTP:
-     pkg.installed:
-       - name: {{ ntp.pkg }}
+    Install NTP:
+      pkg.installed:
+        - name: {{ ntp.pkg }}
 
-   Enable and start NTP:
-     service.running:
-       - name: {{ ntp.service }}
-       - enabled: True
-       - require:
-         - pkg: Install NTP package
+    Enable and start NTP:
+      service.running:
+        - name: {{ ntp.service }}
+        - enabled: True
+        - require:
+          - pkg: Install NTP package
 
 In ``conf.sls`` we have the configuration states. In most cases, that is just managing configuration file templates and making them to be watched by the service.
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
-   include:
-     - ntp
+    ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
+    include:
+      - ntp
 
-   {%- from 'ntp/map.jinja' import ntp with context %}
+    {%- from 'ntp/map.jinja' import ntp with context %}
 
-   Configure NTP:
-     file.managed:
-       - name: {{ ntp.config }}
-       - template: jinja
-       - source: salt://ntp/files/default/etc/ntp.conf.jinja
-       - watch_in:
-         - service: Enable and start NTP service
-       - require:
-         - pkg: Install NTP package
+    Configure NTP:
+      file.managed:
+        - name: {{ ntp.config }}
+        - template: jinja
+        - source: salt://ntp/files/default/etc/ntp.conf.jinja
+        - watch_in:
+          - service: Enable and start NTP service
+        - require:
+          - pkg: Install NTP package
 
 Under ``files/default``, there is a structure that mimics the one in the minion in order to avoid clashes and confusion on where to put the needed templates. There you can find a mostly standard template for the configuration file.
 
 .. code-block:: jinja
 
-   {#- /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/files/default/etc/ntp.conf.jinja #}
-   {#- Managed by saltstack #}
-   {#- Edit pillars or override this template in saltstack if you need customization #}
-   {%- set settings = salt['pillar.get']('ntp', {}) %}
-   {%- set default_servers = ['0.ubuntu.pool.ntp.org',
-                             '1.ubuntu.pool.ntp.org',
-                             '2.ubuntu.pool.ntp.org',
-                             '3.ubuntu.pool.ntp.org'] %}
+    {#- /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/files/default/etc/ntp.conf.jinja #}
+    {#- Managed by saltstack #}
+    {#- Edit pillars or override this template in saltstack if you need customization #}
+    {%- set settings = salt['pillar.get']('ntp', {}) %}
+    {%- set default_servers = ['0.ubuntu.pool.ntp.org',
+                              '1.ubuntu.pool.ntp.org',
+                              '2.ubuntu.pool.ntp.org',
+                              '3.ubuntu.pool.ntp.org'] %}
 
-   driftfile /var/lib/ntp/ntp.drift
-   statistics loopstats peerstats clockstats
-   filegen loopstats file loopstats type day enable
-   filegen peerstats file peerstats type day enable
-   filegen clockstats file clockstats type day enable
+    driftfile /var/lib/ntp/ntp.drift
+    statistics loopstats peerstats clockstats
+    filegen loopstats file loopstats type day enable
+    filegen peerstats file peerstats type day enable
+    filegen clockstats file clockstats type day enable
 
-   {%- for server in settings.get('servers', default_servers) %}
-   server {{ server }}
-   {%- endfor %}
+    {%- for server in settings.get('servers', default_servers) %}
+    server {{ server }}
+    {%- endfor %}
 
-   restrict -4 default kod notrap nomodify nopeer noquery
-   restrict -6 default kod notrap nomodify nopeer noquery
+    restrict -4 default kod notrap nomodify nopeer noquery
+    restrict -6 default kod notrap nomodify nopeer noquery
 
-   restrict 127.0.0.1
-   restrict ::1
+    restrict 127.0.0.1
+    restrict ::1
 
 With all this, it is easy to install and configure a simple NTP server by just running ``salt-call state.sls ntp.conf``: the package will be installed, the service will be running and the configuration should be correct for most of cases, even without pillar data.
 
@@ -173,29 +173,29 @@ Alternatively, you can define a highstate in ``/srv/saltstack/salt/top.sls`` and
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt/top.sls
-   base:
-     '*':
-       - ntp.conf
+    ## /srv/saltstack/salt/top.sls
+    base:
+      '*':
+        - ntp.conf
 
 **Customizing the formula just with pillar data**, we have the option to define the NTP servers.
 
 .. code-block:: sls
 
-   ## /srv/saltstack/pillar/top.sls
-   base:
-     '*':
-       - ntp
+    ## /srv/saltstack/pillar/top.sls
+    base:
+      '*':
+        - ntp
 
 .. code-block:: sls
 
-   ## /srv/saltstack/pillar/ntp.sls
-   ntp:
-     servers:
-       - 0.ch.pool.ntp.org
-       - 1.ch.pool.ntp.org
-       - 2.ch.pool.ntp.org
-       - 3.ch.pool.ntp.org
+    ## /srv/saltstack/pillar/ntp.sls
+    ntp:
+      servers:
+        - 0.ch.pool.ntp.org
+        - 1.ch.pool.ntp.org
+        - 2.ch.pool.ntp.org
+        - 3.ch.pool.ntp.org
 
 Template Override
 ^^^^^^^^^^^^^^^^^
@@ -204,16 +204,16 @@ If the customization based on pillar data is not enough, we can override the tem
 
 .. code-block:: jinja
 
-   {#- /srv/saltstack/salt/ntp/files/default/etc/ntp.conf.jinja #}
-   {#- Managed by saltstack #}
-   {#- Edit pillars or override this template in saltstack if you need customization #}
+    {#- /srv/saltstack/salt/ntp/files/default/etc/ntp.conf.jinja #}
+    {#- Managed by saltstack #}
+    {#- Edit pillars or override this template in saltstack if you need customization #}
 
-   {#- Some bizarre configurations here #}
-   {#- ... #}
+    {#- Some bizarre configurations here #}
+    {#- ... #}
 
-   {%- for server in settings.get('servers', default_servers) %}
-   server {{ server }}
-   {%- endfor %}
+    {%- for server in settings.get('servers', default_servers) %}
+    server {{ server }}
+    {%- endfor %}
 
 This way we are locally **overriding the template files** offered by the formula in order to make a more complex adaptation. Of course, this could be applied as well to any of the files, including the state files.
 
@@ -228,72 +228,72 @@ If we decide that we want ``os_family`` as switch, then we could provide the for
 
 .. code-block:: console
 
-   /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/files/
-     default/
-       etc/
-         ntp.conf.jinja
-     RedHat/
-       etc/
-         ntp.conf.jinja
-     Debian/
-       etc/
-         ntp.conf.jinja
+    /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/files/
+      default/
+        etc/
+          ntp.conf.jinja
+      RedHat/
+        etc/
+          ntp.conf.jinja
+      Debian/
+        etc/
+          ntp.conf.jinja
 
 To make this work we need a ``conf.sls`` state file that takes a list of possible files as the configuration template.
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
-   include:
-     - ntp
+    ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
+    include:
+      - ntp
 
-   {%- from 'ntp/map.jinja' import ntp with context %}
+    {%- from 'ntp/map.jinja' import ntp with context %}
 
-   Configure NTP:
-     file.managed:
-       - name: {{ ntp.config }}
-       - template: jinja
-       - source:
-         - salt://ntp/files/{{ grains.get('os_family', 'default') }}/etc/ntp.conf.jinja
-         - salt://ntp/files/default/etc/ntp.conf.jinja
-       - watch_in:
-         - service: Enable and start NTP service
-       - require:
-         - pkg: Install NTP package
+    Configure NTP:
+      file.managed:
+        - name: {{ ntp.config }}
+        - template: jinja
+        - source:
+          - salt://ntp/files/{{ grains.get('os_family', 'default') }}/etc/ntp.conf.jinja
+          - salt://ntp/files/default/etc/ntp.conf.jinja
+        - watch_in:
+          - service: Enable and start NTP service
+        - require:
+          - pkg: Install NTP package
 
 If we want to cover the possibility of a special template for a minion identified by ``node01`` then we could have a specific template in ``/srv/saltstack/salt/ntp/files/node01/etc/ntp.conf.jinja``.
 
 .. code-block:: jinja
 
-   {#- /srv/saltstack/salt/ntp/files/node01/etc/ntp.conf.jinja #}
-   {#- Managed by saltstack #}
-   {#- Edit pillars or override this template in saltstack if you need customization #}
+    {#- /srv/saltstack/salt/ntp/files/node01/etc/ntp.conf.jinja #}
+    {#- Managed by saltstack #}
+    {#- Edit pillars or override this template in saltstack if you need customization #}
 
-   {#- Some crazy configurations here for node01 #}
-   {#- ... #}
+    {#- Some crazy configurations here for node01 #}
+    {#- ... #}
 
 To make this work we could write a specially crafted ``conf.sls``.
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
-   include:
-     - ntp
+    ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
+    include:
+      - ntp
 
-   {%- from 'ntp/map.jinja' import ntp with context %}
+    {%- from 'ntp/map.jinja' import ntp with context %}
 
-   Configure NTP:
-     file.managed:
-       - name: {{ ntp.config }}
-       - template: jinja
-       - source:
-         - salt://ntp/files/{{ grains.get('id') }}/etc/ntp.conf.jinja
-         - salt://ntp/files/{{ grains.get('os_family') }}/etc/ntp.conf.jinja
-         - salt://ntp/files/default/etc/ntp.conf.jinja
-       - watch_in:
-         - service: Enable and start NTP service
-       - require:
-         - pkg: Install NTP package
+    Configure NTP:
+      file.managed:
+        - name: {{ ntp.config }}
+        - template: jinja
+        - source:
+          - salt://ntp/files/{{ grains.get('id') }}/etc/ntp.conf.jinja
+          - salt://ntp/files/{{ grains.get('os_family') }}/etc/ntp.conf.jinja
+          - salt://ntp/files/default/etc/ntp.conf.jinja
+        - watch_in:
+          - service: Enable and start NTP service
+        - require:
+          - pkg: Install NTP package
 
 Using the ``files_switch`` macro
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -302,26 +302,26 @@ We can simplify the ``conf.sls`` with the new ``files_switch`` macro to use in t
 
 .. code-block:: sls
 
-   ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
-   include:
-     - ntp
+    ## /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/conf.sls
+    include:
+      - ntp
 
-   {%- set tplroot = tpldir.split('/')[0] %}
-   {%- from 'ntp/map.jinja' import ntp with context %}
-   {%- from 'ntp/libtofs.jinja' import files_switch %}
+    {%- set tplroot = tpldir.split('/')[0] %}
+    {%- from 'ntp/map.jinja' import ntp with context %}
+    {%- from 'ntp/libtofs.jinja' import files_switch %}
 
-   Configure NTP:
-     file.managed:
-       - name: {{ ntp.config }}
-       - template: jinja
-       - source: {{ files_switch(['/etc/ntp.conf.jinja'],
-                                 lookup='Configure NTP'
+    Configure NTP:
+      file.managed:
+        - name: {{ ntp.config }}
+        - template: jinja
+        - source: {{ files_switch(['/etc/ntp.conf.jinja'],
+                                  lookup='Configure NTP'
                     )
-                 }}
-       - watch_in:
-         - service: Enable and start NTP service
-       - require:
-         - pkg: Install NTP package
+                  }}
+        - watch_in:
+          - service: Enable and start NTP service
+        - require:
+          - pkg: Install NTP package
 
 
 * This uses ``config.get``, searching for ``ntp:tofs:source_files:Configure NTP`` to determine the list of template files to use.
@@ -331,8 +331,8 @@ We can simplify the ``conf.sls`` with the new ``files_switch`` macro to use in t
 In ``libtofs.jinja``, we define this new macro ``files_switch``.
 
 .. literalinclude:: ../template/libtofs.jinja
-   :caption: /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/libtofs.jinja
-   :language: jinja
+    :caption: /srv/saltstack/salt-formulas/ntp-saltstack-formula/ntp/libtofs.jinja
+    :language: jinja
 
 How to customise the ``source`` further
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -344,10 +344,10 @@ the ``source`` will be:
 
 .. code-block:: sls
 
-         - source:
-           - salt://ntp/files/theminion/etc/ntp.conf.jinja
-           - salt://ntp/files/Debian/etc/ntp.conf.jinja
-           - salt://ntp/files/default/etc/ntp.conf.jinja
+          - source:
+            - salt://ntp/files/theminion/etc/ntp.conf.jinja
+            - salt://ntp/files/Debian/etc/ntp.conf.jinja
+            - salt://ntp/files/default/etc/ntp.conf.jinja
 
 Customise ``files``
 ~~~~~~~~~~~~~~~~~~~
@@ -356,19 +356,19 @@ The ``files`` portion can be customised:
 
 .. code-block:: sls
 
-   ntp:
-     tofs:
-       dirs:
-         files: files_alt
+    ntp:
+      tofs:
+        dirs:
+          files: files_alt
 
 Resulting in:
 
 .. code-block:: sls
 
-         - source:
-           - salt://ntp/files_alt/theminion/etc/ntp.conf.jinja
-           - salt://ntp/files_alt/Debian/etc/ntp.conf.jinja
-           - salt://ntp/files_alt/default/etc/ntp.conf.jinja
+          - source:
+            - salt://ntp/files_alt/theminion/etc/ntp.conf.jinja
+            - salt://ntp/files_alt/Debian/etc/ntp.conf.jinja
+            - salt://ntp/files_alt/default/etc/ntp.conf.jinja
 
 Customise the use of grains
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -377,24 +377,24 @@ Grains can be customised and even arbitrary paths can be supplied:
 
 .. code-block:: sls
 
-   ntp:
-     tofs:
-       files_switch:
-         - any/path/can/be/used/here
-         - id
-         - os
-         - os_family
+    ntp:
+      tofs:
+        files_switch:
+          - any/path/can/be/used/here
+          - id
+          - os
+          - os_family
 
 Resulting in:
 
 .. code-block:: sls
 
-         - source:
-           - salt://ntp/files/any/path/can/be/used/here/etc/ntp.conf.jinja
-           - salt://ntp/files/theminion/etc/ntp.conf.jinja
-           - salt://ntp/files/Ubuntu/etc/ntp.conf.jinja
-           - salt://ntp/files/Debian/etc/ntp.conf.jinja
-           - salt://ntp/files/default/etc/ntp.conf.jinja
+          - source:
+            - salt://ntp/files/any/path/can/be/used/here/etc/ntp.conf.jinja
+            - salt://ntp/files/theminion/etc/ntp.conf.jinja
+            - salt://ntp/files/Ubuntu/etc/ntp.conf.jinja
+            - salt://ntp/files/Debian/etc/ntp.conf.jinja
+            - salt://ntp/files/default/etc/ntp.conf.jinja
 
 Customise the ``default`` path
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -403,18 +403,18 @@ The ``default`` portion of the path can be customised:
 
 .. code-block:: sls
 
-   ntp:
-     tofs:
-       dirs:
-         default: default_alt
+    ntp:
+      tofs:
+        dirs:
+          default: default_alt
 
 Resulting in:
 
 .. code-block:: sls
 
-         - source:
-           ...
-           - salt://ntp/files/default_alt/etc/ntp.conf.jinja
+          - source:
+            ...
+            - salt://ntp/files/default_alt/etc/ntp.conf.jinja
 
 Customise the list of ``source_files``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -423,23 +423,23 @@ The list of ``source_files`` can be given:
 
 .. code-block:: sls
 
-   ntp:
-     tofs:
-       source_files:
-         Configure NTP:
-           - '/etc/ntp.conf_alt.jinja'
+    ntp:
+      tofs:
+        source_files:
+          Configure NTP:
+            - '/etc/ntp.conf_alt.jinja'
 
 Resulting in:
 
 .. code-block:: sls
 
-         - source:
-           - salt://ntp/files/theminion/etc/ntp.conf_alt.jinja
-           - salt://ntp/files/theminion/etc/ntp.conf.jinja
-           - salt://ntp/files/Debian/etc/ntp.conf_alt.jinja
-           - salt://ntp/files/Debian/etc/ntp.conf.jinja
-           - salt://ntp/files/default/etc/ntp.conf_alt.jinja
-           - salt://ntp/files/default/etc/ntp.conf.jinja
+          - source:
+            - salt://ntp/files/theminion/etc/ntp.conf_alt.jinja
+            - salt://ntp/files/theminion/etc/ntp.conf.jinja
+            - salt://ntp/files/Debian/etc/ntp.conf_alt.jinja
+            - salt://ntp/files/Debian/etc/ntp.conf.jinja
+            - salt://ntp/files/default/etc/ntp.conf_alt.jinja
+            - salt://ntp/files/default/etc/ntp.conf.jinja
 
 Note: This does *not* override the default value.
 Rather, the value from the pillar/config is prepended to the default.
@@ -451,68 +451,68 @@ If your formula is composed of several components, you may prefer to provides fi
 
 .. code-block:: console
 
-   /srv/saltstack/systemd-formula/
-     systemd/
-       init.sls
-       libtofs.jinja
-       map.jinja
-       networkd/
-         init.sls
-         files/
-           default/
-             network/
-               99-default.link
-       resolved/
-         init.sls
-         files/
-           default/
-             resolved.conf
-       timesyncd/
-         init.sls
-         files/
-           Arch/
-             resolved.conf
-           Debian/
-             resolved.conf
-           default/
-             resolved.conf
-           Ubuntu/
-             resolved.conf
+    /srv/saltstack/systemd-formula/
+      systemd/
+        init.sls
+        libtofs.jinja
+        map.jinja
+        networkd/
+          init.sls
+          files/
+            default/
+              network/
+                99-default.link
+        resolved/
+          init.sls
+          files/
+            default/
+              resolved.conf
+        timesyncd/
+          init.sls
+          files/
+            Arch/
+              resolved.conf
+            Debian/
+              resolved.conf
+            default/
+              resolved.conf
+            Ubuntu/
+              resolved.conf
 
 For example, the following ``formula.component.config`` SLS:
 
 .. code-block:: sls
 
-   {%- from "formula/libtofs.jinja" import files_switch with context %}
+    {%- from "formula/libtofs.jinja" import files_switch with context %}
 
-   formula configuration file:
-     file.managed:
-       - name: /etc/formula.conf
-       - user: root
-       - group: root
-       - mode: 644
-       - template: jinja
-       - source: {{ files_switch(['formula.conf'],
-                                 lookup='formula',
-                                 use_subpath=True
+    formula configuration file:
+      file.managed:
+        - name: /etc/formula.conf
+        - user: root
+        - group: root
+        - mode: 644
+        - template: jinja
+        - source: {{ files_switch(['formula.conf'],
+                                  lookup='formula',
+                                  use_subpath=True
                     )
-                 }}
+                  }}
 
 will be rendered on a ``Debian`` minion named ``salt-formula.ci.local`` as:
 
 .. code-block:: sls
 
-   formula configuration file:
-     file.managed:
-       - name: /etc/formula.conf
-       - user: root
-       - group: root
-       - mode: 644
-       - template: jinja
-       - source:
-         - salt://formula/component/files/salt-formula.ci.local/formula.conf
-         - salt://formula/component/files/Debian/formula.conf
-         - salt://formula/component/files/default/formula.conf
-         - salt://formula/files/salt-formula.ci.local/formula.conf
-         - salt://formula/files/Debian/formula.conf
-         - salt://formula/files/default/formula.conf
+    formula configuration file:
+      file.managed:
+        - name: /etc/formula.conf
+        - user: root
+        - group: root
+        - mode: 644
+        - template: jinja
+        - source:
+          - salt://formula/component/files/salt-formula.ci.local/formula.conf
+          - salt://formula/component/files/Debian/formula.conf
+          - salt://formula/component/files/default/formula.conf
+          - salt://formula/files/salt-formula.ci.local/formula.conf
+          - salt://formula/files/Debian/formula.conf
+          - salt://formula/files/default/formula.conf

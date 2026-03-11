@@ -302,13 +302,13 @@ The ``map.jinja`` file uses several sources where to lookup parameter values. Th
 
 1. globally
 
-   1. with a plain YAML file ``salt://parameters/map_jinja.yaml``
-   2. with a Jinja2 YAML template file ``salt://parameters/map_jinja.yaml.jinja``
+    1. with a plain YAML file ``salt://parameters/map_jinja.yaml``
+    2. with a Jinja2 YAML template file ``salt://parameters/map_jinja.yaml.jinja``
 
 2. per formula
 
-   1. with a plain YAML file ``salt://{{ tplroot }}/parameters/map_jinja.yaml``
-   2. with a Jinja2 YAML template file ``salt://{{ tplroot }}/parameters/map_jinja.yaml.jinja``
+    1. with a plain YAML file ``salt://{{ tplroot }}/parameters/map_jinja.yaml``
+    2. with a Jinja2 YAML template file ``salt://{{ tplroot }}/parameters/map_jinja.yaml.jinja``
 
 .. note::
 
@@ -379,19 +379,19 @@ For each configuration source defined, ``map.jinja`` will:
 
 #. load values depending on the source type:
 
-   - for YAML file sources
+    - for YAML file sources
 
-     - if the ``<KEY>`` can be looked up:
+    - if the ``<KEY>`` can be looked up:
 
-       - load values from the YAML file named ``salt://{{ tplroot }}/paramaters/<KEY>/{{ salt['<QUERY_METHOD>']('<KEY>') }}.yaml`` if it exists
-       - load values from the Jinja2 YAML template file named ``salt://{{ tplroot }}/paramaters/<KEY>/{{ salt['<QUERY_METHOD>']('<KEY>') }}.yaml.jinja`` if it exists
+        - load values from the YAML file named ``salt://{{ tplroot }}/paramaters/<KEY>/{{ salt['<QUERY_METHOD>']('<KEY>') }}.yaml`` if it exists
+        - load values from the Jinja2 YAML template file named ``salt://{{ tplroot }}/paramaters/<KEY>/{{ salt['<QUERY_METHOD>']('<KEY>') }}.yaml.jinja`` if it exists
 
-     - otherwise:
+    - otherwise:
 
-       - load the YAML file named ``salt://{{ tplroot }}/parameters/<KEY>.yaml`` if it exists
-       - load the Jinja2 YAML template file named ``salt://{{ tplroot }}/parameters/<KEY>.yaml.jinja`` if it exists
+        - load the YAML file named ``salt://{{ tplroot }}/parameters/<KEY>.yaml`` if it exists
+        - load the Jinja2 YAML template file named ``salt://{{ tplroot }}/parameters/<KEY>.yaml.jinja`` if it exists
 
-   - for ``C``, ``G`` or ``I`` source type, lookup the value of ``salt['<QUERY_METHOD>']('<KEY>')``
+  - for ``C``, ``G`` or ``I`` source type, lookup the value of ``salt['<QUERY_METHOD>']('<KEY>')``
 
 #. merge the loaded values with the previous ones using `salt.slsutil.merge`_
 
@@ -491,7 +491,7 @@ Here is an example based on `template-formula/firefox/config/file.sls`_:
         - name: {{ firefox.config }}
         - source: {{ files_switch(['example.tmpl'],
                                   lookup='firefox-config-file-file-managed'
-                     )
+                      )
                   }}
         - mode: 644
         - user: root

@@ -6,22 +6,22 @@ firefox-browser-formula
 |img_travis| |img_sr| |img_pc|
 
 .. |img_travis| image:: https://travis-ci.com/saltstack-formulas/firefox-browser-formula.svg?branch=master
-   :alt: Travis CI Build Status
-   :scale: 100%
-   :target: https://travis-ci.com/saltstack-formulas/firefox-browser-formula
+    :alt: Travis CI Build Status
+    :scale: 100%
+    :target: https://travis-ci.com/saltstack-formulas/firefox-browser-formula
 .. |img_sr| image:: https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
-   :alt: Semantic Release
-   :scale: 100%
-   :target: https://github.com/semantic-release/semantic-release
+    :alt: Semantic Release
+    :scale: 100%
+    :target: https://github.com/semantic-release/semantic-release
 .. |img_pc| image:: https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white
-   :alt: pre-commit
-   :scale: 100%
-   :target: https://github.com/pre-commit/pre-commit
+    :alt: pre-commit
+    :scale: 100%
+    :target: https://github.com/pre-commit/pre-commit
 
 A SaltStack formula designed to facilitate the installation of the Firefox browser onto select host-types. As of this writing, supported hosts types only include RPM-based Linux distributions (RHEL and clones/work-alikes).
 
 .. contents:: **Table of Contents**
-   :depth: 1
+    :depth: 1
 
 General notes
 -------------
@@ -55,7 +55,7 @@ Available states
 ----------------
 
 .. contents::
-   :local:
+    :local:
 
 ``firefox``
 ^^^^^^^^^^^

@@ -21,10 +21,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
     *   Manages installation of Firefox browser onto Windows-based systems.
         Installation-bundle must be in the form of a Windows EXE-installer.
     *   Manages removal of the Firefox browser from Windows-based systems:
-        *    Removes binaries and related contents from standard install
-	     locations (`C:\Program Files\Mozilla Firefox\` and
-	     `C:\Program Files (x86)\Mozilla Firefox\` for 64-bit and
-	     32-bit target-hosts, respectively)
-        *    Removes the standard, system-wide registry keys for firefox:
-             *   `HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla`; and
-             *   `HKEY_LOCAL_MACHINE\SOFTWARE\MozillaPlugins`
+        *   Removes binaries and related contents from standard install
+            locations (`C:\Program Files\Mozilla Firefox\` and
+            `C:\Program Files (x86)\Mozilla Firefox\` for 64-bit and
+            32-bit target-hosts, respectively)
+        *   Removes the standard, system-wide registry keys for firefox:
+            *   `HKEY_LOCAL_MACHINE\SOFTWARE\Mozilla`; and
+            *   `HKEY_LOCAL_MACHINE\SOFTWARE\MozillaPlugins`
