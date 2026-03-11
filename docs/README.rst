@@ -18,7 +18,7 @@ firefox-browser-formula
     :scale: 100%
     :target: https://github.com/pre-commit/pre-commit
 
-A SaltStack formula designed to facilitate the installation of the Firefox browser onto select host-types. As of this writing, supported hosts types only include RPM-based Linux distributions (RHEL and clones/work-alikes).
+A SaltStack formula designed to facilitate the installation of the Firefox browser onto select host-types. As of this writing, supported hosts types only include RPM-based Linux distributions (RHEL and clones/work-alikes) and Windows-based systems (only specifically exercised on Server 2022 with CI-testing of Server 2019 and Server 2022).
 
 .. contents:: **Table of Contents**
     :depth: 1
