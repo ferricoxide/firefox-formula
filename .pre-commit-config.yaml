@@ -94,7 +94,6 @@ repos:
         exclude: |
             (?x)^(
                 docs/CHANGELOG.rst|
-                docs/TOFS_pattern.rst|
                 docs/CONTRIBUTING_DOCS.rst|
                 docs/index.rst|
             )$

@@ -62,8 +62,8 @@ jobs:
         - git ls-files -- '*.sh' '*.bash' '*.ksh'
                         | xargs shellcheck
         # Install and run `commitlint`
-        - npm i -D @commitlint/config-conventional
-                   @commitlint/travis-cli
+        - npm i -D  @commitlint/config-conventional
+                    @commitlint/travis-cli
         - commitlint-travis
 
     # Run `pre-commit` linters in a single job
@@ -169,9 +169,9 @@ jobs:
         - maintainer contributor
 
         # Install all dependencies required for `semantic-release`
-        - npm i -D @semantic-release/changelog@3
-                   @semantic-release/exec@3
-                   @semantic-release/git@7
+        - npm i -D  @semantic-release/changelog@3
+                    @semantic-release/exec@3
+                    @semantic-release/git@7
       deploy:
         provider: 'script'
         # Opt-in to `dpl v2` to complete the Travis build config validation (beta)
